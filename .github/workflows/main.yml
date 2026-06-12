@@ -5,74 +5,47 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-deb:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Get code
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install system tools
+      - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y python3 python3-pip mpv dpkg-dev rpm
+          sudo apt install -y python3 python3-pip mpv dpkg-dev
 
-      - name: Install Python libraries
+      - name: Install Python packages
         run: |
           pip3 install -r requirements.txt --user
 
-      - name: Prepare folder
+      - name: Prepare DEB folder
         run: |
           mkdir -p build/usr/bin
           cp lmc.py build/usr/bin/lmc
           chmod +x build/usr/bin/lmc
 
-      - name: Create DEB control file
+      - name: Create DEBIAN control file
         run: |
           mkdir -p build/DEBIAN
-          echo "Package: lmc
+          cat <<EOF > build/DEBIAN/control
+Package: lmc
 Version: 1.0
 Section: video
 Priority: optional
 Architecture: all
 Depends: python3, mpv
-Maintainer: You
-Description: LMC Linux Media Player" > build/DEBIAN/control
+Maintainer: LMC Dev
+Description: Linux Media Player (LMC)
+EOF
 
-      - name: Build DEB
+      - name: Build DEB package
         run: dpkg-deb --build build lmc.deb
-
-      - name: Create RPM structure
-        run: |
-          mkdir -p rpm/BUILD rpm/RPMS rpm/SOURCES rpm/SPECS rpm/SRPMS
-
-      - name: Create RPM spec
-        run: |
-          echo "Name: lmc
-Version: 1.0
-Release: 1
-Summary: LMC Linux Media Player
-License: MIT
-BuildArch: noarch
-Requires: python3 mpv
-
-%description
-LMC Linux Media Player
-
-%files
-/usr/bin/lmc" > rpm/SPECS/lmc.spec
-
-      - name: Build RPM
-        run: rpmbuild --define "_topdir $PWD/rpm" -ba rpm/SPECS/lmc.spec
 
       - name: Upload DEB
         uses: actions/upload-artifact@v4
         with:
           name: lmc-deb
           path: lmc.deb
-
-      - name: Upload RPM
-        uses: actions/upload-artifact@v4
-        with:
-          name: lmc-rpm
-          path: rpm/RPMS
