@@ -12,35 +12,52 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install tools
+      - name: Install system dependencies
         run: |
           sudo apt update
           sudo apt install -y python3 python3-pip mpv dpkg-dev
 
-      - name: Install Python deps
+      - name: Install Python dependencies
         run: |
           pip3 install -r requirements.txt --user
 
-      - name: Prepare files
+      - name: Prepare package structure
         run: |
           mkdir -p pkg/usr/bin
-          install -Dm755 lmp.py pkg/usr/bin/lmp
-          chmod +x pkg/usr/bin/lmp
-
-      - name: Create control file (SAFE METHOD)
-        run: |
+          mkdir -p pkg/usr/share/applications
           mkdir -p pkg/DEBIAN
 
-          echo "Package: lmp" > pkg/DEBIAN/control
-          echo "Version: 1.0" >> pkg/DEBIAN/control
-          echo "Section: video" >> pkg/DEBIAN/control
-          echo "Priority: optional" >> pkg/DEBIAN/control
-          echo "Architecture: all" >> pkg/DEBIAN/control
-          echo "Depends: python3, mpv" >> pkg/DEBIAN/control
-          echo "Maintainer: LMP Dev" >> pkg/DEBIAN/control
-          echo "Description: LMP (Linux Media Player)" >> pkg/DEBIAN/control
+      - name: Install LMP binary
+        run: |
+          install -Dm755 lmp.py pkg/usr/bin/lmp
 
-      - name: Build package
+      - name: Create desktop entry (Sound & Video)
+        run: |
+          cat <<EOF > pkg/usr/share/applications/lmp.desktop
+[Desktop Entry]
+Name=LMP (Linux Media Player)
+Comment=Simple Media Player
+Exec=lmp
+Icon=video-x-generic
+Terminal=false
+Type=Application
+Categories=AudioVideo;Player;
+EOF
+
+      - name: Create Debian control file
+        run: |
+          cat <<EOF > pkg/DEBIAN/control
+Package: lmp
+Version: 1.0
+Section: video
+Priority: optional
+Architecture: all
+Depends: python3, mpv
+Maintainer: LMP Dev
+Description: LMP (Linux Media Player)
+EOF
+
+      - name: Build .deb package
         run: dpkg-deb --build pkg lmp.deb
 
       - name: Upload artifact
