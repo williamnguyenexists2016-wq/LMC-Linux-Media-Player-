@@ -1,0 +1,3 @@
+python-mpv
+pillow
+pillow-heif
