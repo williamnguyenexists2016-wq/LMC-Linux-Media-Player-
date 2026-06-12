@@ -8,14 +8,14 @@ import subprocess
 from PIL import Image
 import pillow_heif
 
-APP = "LMC (Linux Media Player)"
+APP = "LMP (Linux Media Player)"
 
 DOWNLOADS = os.path.expanduser("~/Downloads")
 MUSIC = os.path.expanduser("~/Music")
 VIDEOS = os.path.expanduser("~/Videos")
 
 
-class LMC:
+class LMP:
     def __init__(self, root):
         self.root = root
         self.root.title(APP)
@@ -240,5 +240,5 @@ class LMC:
 
 # ================= RUN =================
 root = tk.Tk()
-app = LMC(root)
+app = LMP(root)
 root.mainloop()
