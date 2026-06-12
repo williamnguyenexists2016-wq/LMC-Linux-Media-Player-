@@ -1,0 +1,43 @@
+name: Build LMP (.tar.gz)
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Create package folder
+        run: |
+          mkdir -p lmp/usr/bin
+          mkdir -p lmp/usr/share/applications
+
+      - name: Install LMP binary
+        run: |
+          install -Dm755 lmp.py lmp/usr/bin/lmp
+
+      - name: Create desktop entry
+        run: |
+          echo "[Desktop Entry]" > lmp/usr/share/applications/lmp.desktop
+          echo "Name=LMP (Linux Media Player)" >> lmp/usr/share/applications/lmp.desktop
+          echo "Comment=Simple Media Player" >> lmp/usr/share/applications/lmp.desktop
+          echo "Exec=lmp" >> lmp/usr/share/applications/lmp.desktop
+          echo "Icon=video-x-generic" >> lmp/usr/share/applications/lmp.desktop
+          echo "Terminal=false" >> lmp/usr/share/applications/lmp.desktop
+          echo "Type=Application" >> lmp/usr/share/applications/lmp.desktop
+          echo "Categories=AudioVideo;Player;" >> lmp/usr/share/applications/lmp.desktop
+
+      - name: Create tar.gz package
+        run: |
+          tar -czvf lmp.tar.gz lmp
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lmp-tar
+          path: lmp.tar.gz
