@@ -1,4 +1,4 @@
-name: LMC Build Test
+name: Build LMP (.deb)
 
 on:
   push:
@@ -9,29 +9,43 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install system tools
+      - name: Install system packages
         run: |
           sudo apt update
           sudo apt install -y python3 python3-pip mpv dpkg-dev
 
-      - name: Install Python deps
+      - name: Install Python dependencies
         run: |
           pip3 install -r requirements.txt --user
 
-      - name: Prepare build folder
+      - name: Prepare package folder
         run: |
           mkdir -p pkg/usr/bin
-          cp lmc.py pkg/usr/bin/lmc
-          chmod +x pkg/usr/bin/lmc
+          cp lmp.py pkg/usr/bin/lmp
+          chmod +x pkg/usr/bin/lmp
 
-      - name: Build DEB package
-        run: dpkg-deb --build pkg lmc.deb
+      - name: Create DEBIAN control file
+        run: |
+          mkdir -p pkg/DEBIAN
+          cat <<EOF > pkg/DEBIAN/control
+Package: lmp
+Version: 1.0
+Section: video
+Priority: optional
+Architecture: all
+Depends: python3, mpv
+Maintainer: LMP Dev
+Description: LMP (Linux Media Player)
+EOF
+
+      - name: Build .deb package
+        run: dpkg-deb --build pkg lmp.deb
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: lmc-deb
-          path: lmc.deb
+          name: lmp-deb
+          path: lmp.deb
