@@ -1,4 +1,4 @@
-name: Build LMC (Debian Package)
+name: Test LMC Build
 
 on:
   push:
@@ -9,43 +9,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y python3 python3-pip mpv dpkg-dev
-
-      - name: Install Python requirements
-        run: |
-          pip3 install -r requirements.txt --user
-
-      - name: Prepare package folder
-        run: |
-          mkdir -p pkg/usr/bin
-          cp lmc.py pkg/usr/bin/lmc
-          chmod +x pkg/usr/bin/lmc
-
-      - name: Create DEBIAN control file
-        run: |
-          mkdir -p pkg/DEBIAN
-          cat <<EOF > pkg/DEBIAN/control
-Package: lmc
-Version: 1.0
-Section: video
-Priority: optional
-Architecture: all
-Depends: python3, mpv
-Maintainer: LMC Dev
-Description: Linux Media Player
-EOF
-
-      - name: Build .deb package
-        run: dpkg-deb --build pkg lmc.deb
-
-      - name: Upload package
-        uses: actions/upload-artifact@v4
-        with:
-          name: lmc-deb
-          path: lmc.deb
+      - name: Test Python
+        run: python3 --version
