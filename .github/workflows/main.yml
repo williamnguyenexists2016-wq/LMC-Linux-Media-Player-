@@ -12,36 +12,35 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install system packages
+      - name: Install tools
         run: |
           sudo apt update
           sudo apt install -y python3 python3-pip mpv dpkg-dev
 
-      - name: Install Python dependencies
+      - name: Install Python deps
         run: |
           pip3 install -r requirements.txt --user
 
-      - name: Prepare package folder
+      - name: Prepare files
         run: |
           mkdir -p pkg/usr/bin
           cp lmp.py pkg/usr/bin/lmp
           chmod +x pkg/usr/bin/lmp
 
-      - name: Create DEBIAN control file
+      - name: Create control file (SAFE METHOD)
         run: |
           mkdir -p pkg/DEBIAN
-          cat <<EOF > pkg/DEBIAN/control
-Package: lmp
-Version: 1.0
-Section: video
-Priority: optional
-Architecture: all
-Depends: python3, mpv
-Maintainer: LMP Dev
-Description: LMP (Linux Media Player)
-EOF
 
-      - name: Build .deb package
+          echo "Package: lmp" > pkg/DEBIAN/control
+          echo "Version: 1.0" >> pkg/DEBIAN/control
+          echo "Section: video" >> pkg/DEBIAN/control
+          echo "Priority: optional" >> pkg/DEBIAN/control
+          echo "Architecture: all" >> pkg/DEBIAN/control
+          echo "Depends: python3, mpv" >> pkg/DEBIAN/control
+          echo "Maintainer: LMP Dev" >> pkg/DEBIAN/control
+          echo "Description: LMP (Linux Media Player)" >> pkg/DEBIAN/control
+
+      - name: Build package
         run: dpkg-deb --build pkg lmp.deb
 
       - name: Upload artifact
