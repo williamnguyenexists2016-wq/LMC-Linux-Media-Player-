@@ -1,4 +1,4 @@
-name: Build LMP (.deb)
+name: Build LMP (.tar.gz)
 
 on:
   push:
@@ -12,52 +12,32 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install system packages
+      - name: Create package folder
         run: |
-          sudo apt update
-          sudo apt install -y python3 python3-pip mpv dpkg-dev
+          mkdir -p lmp/usr/bin
+          mkdir -p lmp/usr/share/applications
 
-      - name: Install Python dependencies
+      - name: Install LMP binary
         run: |
-          pip3 install -r requirements.txt --user
+          install -Dm755 lmp.py lmp/usr/bin/lmp
 
-      - name: Prepare package folders
+      - name: Create desktop entry
         run: |
-          mkdir -p pkg/usr/bin
-          mkdir -p pkg/usr/share/applications
-          mkdir -p pkg/DEBIAN
+          echo "[Desktop Entry]" > lmp/usr/share/applications/lmp.desktop
+          echo "Name=LMP (Linux Media Player)" >> lmp/usr/share/applications/lmp.desktop
+          echo "Comment=Simple Media Player" >> lmp/usr/share/applications/lmp.desktop
+          echo "Exec=lmp" >> lmp/usr/share/applications/lmp.desktop
+          echo "Icon=video-x-generic" >> lmp/usr/share/applications/lmp.desktop
+          echo "Terminal=false" >> lmp/usr/share/applications/lmp.desktop
+          echo "Type=Application" >> lmp/usr/share/applications/lmp.desktop
+          echo "Categories=AudioVideo;Player;" >> lmp/usr/share/applications/lmp.desktop
 
-      - name: Install LMP executable
+      - name: Create tar.gz package
         run: |
-          install -Dm755 lmp.py pkg/usr/bin/lmp
-
-      - name: Create desktop entry (Sound & Video)
-        run: |
-          echo "[Desktop Entry]" > pkg/usr/share/applications/lmp.desktop
-          echo "Name=LMP (Linux Media Player)" >> pkg/usr/share/applications/lmp.desktop
-          echo "Comment=Simple Media Player" >> pkg/usr/share/applications/lmp.desktop
-          echo "Exec=lmp" >> pkg/usr/share/applications/lmp.desktop
-          echo "Icon=video-x-generic" >> pkg/usr/share/applications/lmp.desktop
-          echo "Terminal=false" >> pkg/usr/share/applications/lmp.desktop
-          echo "Type=Application" >> pkg/usr/share/applications/lmp.desktop
-          echo "Categories=AudioVideo;Player;" >> pkg/usr/share/applications/lmp.desktop
-
-      - name: Create Debian control file
-        run: |
-          echo "Package: lmp" > pkg/DEBIAN/control
-          echo "Version: 1.0" >> pkg/DEBIAN/control
-          echo "Section: video" >> pkg/DEBIAN/control
-          echo "Priority: optional" >> pkg/DEBIAN/control
-          echo "Architecture: all" >> pkg/DEBIAN/control
-          echo "Depends: python3, mpv" >> pkg/DEBIAN/control
-          echo "Maintainer: LMP Dev" >> pkg/DEBIAN/control
-          echo "Description: LMP (Linux Media Player)" >> pkg/DEBIAN/control
-
-      - name: Build .deb package
-        run: dpkg-deb --build pkg lmp.deb
+          tar -czvf lmp.tar.gz lmp
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: lmp-deb
-          path: lmp.deb
+          name: lmp-tar
+          path: lmp.tar.gz
